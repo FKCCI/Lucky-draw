@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Draw - FKCCI Bastille Day 2025</title>
+    <link href="styles.css" rel="stylesheet">
+    <style>
+        .timer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .timer-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            color: white;
+        }
+
+        .countdown {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(211, 20, 68, 0.8);
+            border-radius: 8px;
+        }
+
+        #main-content {
+            display: none;
+        }
+
+        .main-content-visible {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="timer-overlay" class="timer-overlay">
+        <div class="timer-container">
+            <h1>Lucky Draw - FKCCI Bastille Day 2025</h1>
+            <p>Results will be available at 23:30 on July 14th, 2025 (Seoul time)</p>
+            <div id="countdown" class="countdown">Loading...</div>
+            <p>Please come back when the timer reaches zero.</p>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <h1>Lucky Draw - FKCCI Bastille Day 2025</h1>
+        <form id="ticket-form">
+            <div class="input-group">
+                <label for="ticket-number">Enter your ticket number:</label>
+                <input type="number" id="ticket-number" required>
+                <button type="submit" id="check-ticket">Check</button>
+            </div>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function updateTimer() {
+            const targetDate = new Date('2024-07-29T22:00:00+09:00');
+            const now = new Date();
+            const difference = targetDate - now;
+
+            if (difference <= 0) {
+                document.getElementById('timer-overlay').style.display = 'none';
+                document.getElementById('main-content').classList.add('main-content-visible');
+                return;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown').textContent = 
+                `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    </script>
+
+    <script src="script.js"></script>
+</body>
+</html>
