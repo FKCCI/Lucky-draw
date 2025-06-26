@@ -165,41 +165,45 @@ app.get('/api/current-draw', async (req, res) => {
 
 app.post('/api/reset-draw', async (req, res) => {
   try {
-    if (!isInitialized) await initializeGoogleSheets();
-
     const { password } = req.body;
+
     if (password !== process.env.RESET_PASSWORD) {
-      return res.status(401).json({ error: 'Mot de passe incorrect' });
+      return res.status(401).json({ error: 'Mot de passe invalide' });
     }
 
-    const ticketSheet = doc.sheetsByTitle['Tickets'];
-    await ticketSheet.loadCells('A:A');
-    const tickets = [];
-    for (let i = 1; i < ticketSheet.rowCount; i++) {
-      const cell = ticketSheet.getCell(i, 0);
-      if (cell.value) tickets.push(cell.value.toString());
+    const doc = new GoogleSpreadsheet(process.env.SPREADSHEET_ID);
+    await doc.useServiceAccountAuth({
+      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    });
+
+    await doc.loadInfo();
+
+    const sheet = doc.sheetsByTitle['Tickets'];
+    const rows = await sheet.getRows();
+
+    const drawResults = {};
+    for (const row of rows) {
+      if (row.Ticket && row.Lot) {
+        drawResults[row.Ticket] = {
+          lotNumber: row.Lot,
+          sponsor: row.Sponsor,
+          description: row.Description,
+          imageUrl: row.ImageURL,
+        };
+      }
     }
 
-    const shuffledTickets = tickets.sort(() => 0.5 - Math.random());
-    currentDraw = {};
-    for (let i = 0; i < Math.min(shuffledTickets.length, lots.length); i++) {
-      currentDraw[shuffledTickets[i]] = lots[i];
-    }
-
-    const resultSheet = doc.sheetsByTitle['Résultat'];
-    await resultSheet.clear();
-    await resultSheet.setHeaderRow(['Numéro du ticket', 'Numéro du lot', 'Sponsor', 'Description']);
-    const rows = Object.entries(currentDraw).map(([ticket, lot]) => [
-      ticket, lot.lotNumber, lot.sponsor, lot.description
-    ]);
-    await resultSheet.addRows(rows);
+    currentDraw = drawResults;
 
     res.json({ message: 'Tirage réinitialisé avec succès' });
+
   } catch (error) {
-    console.error('Erreur dans /api/reset-draw:', error);
+    console.error('Erreur dans /api/reset-draw :', error); // ← AJOUT
     res.status(500).json({ error: 'Erreur lors de la réinitialisation du tirage' });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
