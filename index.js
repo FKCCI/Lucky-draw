@@ -184,6 +184,7 @@ app.post('/api/reset-draw', async (req, res) => {
     await doc.loadInfo();
 
     const sheet = doc.sheetsByTitle['Tickets'];
+    console.log("✅ Onglets disponibles :", Object.keys(doc.sheetsByTitle));
     console.log("🧾 Feuille récupérée :", sheet ? "OK" : "NON TROUVÉE");
     const rows = await sheet.getRows();
 
