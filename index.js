@@ -119,6 +119,10 @@ app.use(cors()); // Ligne ~100 (selon ton fichier)
 
 app.use(express.json());
 
+console.log("Tentative d'authentification Google Sheets avec :");
+console.log("Email:", process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL);
+console.log("Clé privée (premiers caractères) :", process.env.GOOGLE_PRIVATE_KEY?.slice(0, 30));
+
 async function initializeGoogleSheets() {
   try {
     await doc.useServiceAccountAuth({
