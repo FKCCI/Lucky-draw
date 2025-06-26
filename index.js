@@ -41,16 +41,17 @@ app.get('/api/current-draw', async (req, res) => {
     const results = {};
 
     for (const row of rows) {
-      const ticket = row.get('Ticket');
-      if (ticket) {
-        results[ticket] = {
-          lotNumber: row.get('Lot'),
-          sponsor: row.get('Sponsor'),
-          description: row.get('Description'),
-          imageUrl: row.get('Image'),
-        };
-      }
-    }
+  const ticket = row['Ticket'];
+  if (ticket) {
+    results[ticket] = {
+      lotNumber: row['Lot'],
+      sponsor: row['Sponsor'],
+      description: row['Description'],
+      imageUrl: row['Image'],
+    };
+  }
+}
+
 
     res.json(results);
   } catch (err) {
