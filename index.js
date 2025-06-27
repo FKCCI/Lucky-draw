@@ -117,7 +117,7 @@ app.post('/api/reset-draw', async (req, res) => {
     }
 
     const ticketRows = await sheetTickets.getRows();
-    const tickets = ticketRows.map(row => row.get('Ticket')).filter(Boolean);
+    const ticketNumbers = ticketRows.map(row => row.Ticket);
 
     if (tickets.length < lots.length) {
       return res.status(400).json({ error: 'Pas assez de tickets pour tous les lots.' });
