@@ -71,29 +71,69 @@ app.post('/api/reset-draw', async (req, res) => {
       return res.status(401).json({ error: 'Mot de passe invalide' });
     }
 
-    await sheetResults.clear();
-    await sheetResults.setHeaderRow(['Numéro du ticket', 'Numéro du lot', 'Sponsor', 'Description']);
+    // 1. Supprimer tous les anciens résultats
+    const oldRows = await sheetResults.getRows();
+    for (const row of oldRows) {
+      await row.delete();
+    }
 
-    const rows = [];
-    const tickets = (await sheetTickets.getRows()).map(row => row['Ticket']).filter(Boolean);
-    const shuffled = tickets.sort(() => Math.random() - 0.5);
+    // 2. Récupérer tous les tickets
+    const ticketRows = await sheetTickets.getRows();
+    const tickets = ticketRows.map(row => row['Numéro du ticket']).filter(Boolean);
 
-    for (let i = 0; i < lots.length && i < shuffled.length; i++) {
-      rows.push({
-        'Numéro du ticket': shuffled[i],
-        'Numéro du lot': lots[i].lotNumber,
-        'Sponsor': lots[i].sponsor,
-        'Description': lots[i].description,
+    // 3. Définir les lots ici :
+    const lots = [
+      {
+        lotNumber: '1',
+        sponsor: 'LVMH',
+        description: 'Sac de luxe',
+        imageUrl: 'https://exemple.com/sac.jpg'
+      },
+      {
+        lotNumber: '2',
+        sponsor: 'Air France',
+        description: 'Billet aller-retour Paris-Séoul',
+        imageUrl: 'https://exemple.com/vol.jpg'
+      },
+      {
+        lotNumber: '3',
+        sponsor: 'Pierre Hermé',
+        description: 'Coffret macarons',
+        imageUrl: 'https://exemple.com/macarons.jpg'
+      }
+      // Ajoute ici tous tes autres lots
+    ];
+
+    // 4. Mélanger les deux
+    const shuffledTickets = tickets.sort(() => Math.random() - 0.5);
+    const shuffledLots = lots.sort(() => Math.random() - 0.5);
+
+    // 5. Attribuer les lots
+    const assignments = [];
+    const count = Math.min(shuffledTickets.length, shuffledLots.length);
+    for (let i = 0; i < count; i++) {
+      assignments.push({
+        Ticket: shuffledTickets[i],
+        Lot: shuffledLots[i].lotNumber,
+        Sponsor: shuffledLots[i].sponsor,
+        Description: shuffledLots[i].description,
+        Image: shuffledLots[i].imageUrl
       });
     }
 
-    await sheetResults.addRows(rows);
-    res.json({ message: 'Tirage réinitialisé avec succès' });
+    // 6. Écrire dans Google Sheet Résultats
+    for (const entry of assignments) {
+      await sheetResults.addRow(entry);
+    }
+
+    res.json({ message: 'Tirage réinitialisé et lots attribués avec succès.' });
+
   } catch (err) {
     console.error('Erreur dans /api/reset-draw:', err);
     res.status(500).json({ error: 'Erreur lors de la réinitialisation' });
   }
 });
+
 
 initGoogleSheet()
   .then(() => {
