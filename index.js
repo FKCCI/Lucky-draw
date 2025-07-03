@@ -142,13 +142,8 @@ const initGoogleSheet = async () => {
     sheetTickets = doc.sheetsByTitle['Tickets'];
     sheetResults = doc.sheetsByTitle['Résultats'];
     
-    if (!sheetTickets) {
-      console.error('🔴 Feuille "Tickets" non trouvée');
-    }
-    if (!sheetResults) {
-      console.error('🔴 Feuille "Résultats" non trouvée');
-    }
-    
+    if (!sheetTickets) console.error('🔴 Feuille "Tickets" non trouvée');
+    if (!sheetResults) console.error('🔴 Feuille "Résultats" non trouvée');
   } catch (err) {
     console.error('🔴 Erreur lors de l\'initialisation Google Sheets:', err);
     throw err;
@@ -159,8 +154,6 @@ app.get('/api/current-draw', async (req, res) => {
   try {
     console.log('📥 Requête GET /api/current-draw reçue');
     const rows = await sheetResults.getRows();
-    console.log(`📊 ${rows.length} lignes trouvées dans les résultats`);
-    
     const results = {};
     for (const row of rows) {
       const ticket = row['Numéro du ticket'];
@@ -184,49 +177,32 @@ app.get('/api/current-draw', async (req, res) => {
 app.post('/api/reset-draw', async (req, res) => {
   try {
     console.log('🔄 Début du reset du tirage...');
-    
     const password = req.body.password;
-    console.log('🔑 Vérification du mot de passe...');
-    
+
     if (password !== process.env.RESET_PASSWORD) {
       console.log('❌ Mot de passe invalide');
       return res.status(401).json({ error: 'Mot de passe invalide' });
     }
-    
     console.log('✅ Mot de passe valide');
 
-    // 1. Supprimer tous les anciens résultats
-    console.log('🗑️ Suppression des anciens résultats...');
+    // 1. Supprimer les anciennes lignes
     const oldRows = await sheetResults.getRows();
-    console.log(`📊 ${oldRows.length} anciennes lignes à supprimer`);
-    
-    for (const row of oldRows) {
-      await row.delete();
-    }
+    console.log(`🗑️ Suppression de ${oldRows.length} anciennes lignes`);
+    for (const row of oldRows) await row.delete();
     console.log('✅ Anciens résultats supprimés');
 
-    // 2. Récupérer tous les tickets
-    console.log('🎫 Récupération des tickets...');
+    // 2. Récupérer les tickets
     const ticketRows = await sheetTickets.getRows();
     const tickets = ticketRows.map(row => row['Numéro du ticket']).filter(Boolean);
-    console.log(`📊 ${tickets.length} tickets trouvés:`, tickets);
+    if (tickets.length === 0) return res.status(400).json({ error: 'Aucun ticket trouvé' });
 
-    if (tickets.length === 0) {
-      console.log('❌ Aucun ticket trouvé');
-      return res.status(400).json({ error: 'Aucun ticket trouvé dans la feuille' });
-    }
-
-    // 3. Mélanger les deux
-    console.log('🎲 Mélange des tickets et lots...');
+    // 3. Mélange
     const shuffledTickets = [...tickets].sort(() => Math.random() - 0.5);
     const shuffledLots = [...lots].sort(() => Math.random() - 0.5);
-
-    // 4. Attribuer les lots
-    console.log('🎯 Attribution des lots...');
-    const assignments = [];
     const count = Math.min(shuffledTickets.length, shuffledLots.length);
-    console.log(`🔢 Attribution de ${count} lots`);
-    
+
+    // 4. Créer les assignations
+    const assignments = [];
     for (let i = 0; i < count; i++) {
       assignments.push({
         'Numéro du ticket': shuffledTickets[i],
@@ -237,34 +213,24 @@ app.post('/api/reset-draw', async (req, res) => {
       });
     }
 
-    // 5. Écrire dans Google Sheet Résultats
-    console.log('💾 Écriture des résultats...');
+    // 5. Écriture en batch
     console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
-await sheetResults.addRows(assignments);
-console.log('✅ Insertion batch terminée');
+    await sheetResults.addRows(assignments);
+    console.log('✅ Tirage réinitialisé avec succès');
 
-    }
-
-    console.log('🎉 Tirage réinitialisé avec succès!');
     res.json({ 
-      message: 'Tirage réinitialisé et lots attribués avec succès.',
+      message: 'Tirage réinitialisé avec succès',
       assignedCount: assignments.length,
       totalTickets: tickets.length
     });
 
   } catch (err) {
     console.error('🔴 Erreur dans /api/reset-draw:', err);
-    console.error('🔴 Stack trace:', err.stack);
-    res.status(500).json({ 
-      error: 'Erreur lors de la réinitialisation',
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Erreur lors de la réinitialisation', details: err.message });
   }
 });
 
-// Endpoint de test pour vérifier la connexion
 app.get('/api/health', (req, res) => {
-  console.log('💓 Health check');
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
@@ -279,11 +245,9 @@ initGoogleSheet()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`✅ Serveur lancé sur le port ${PORT}`);
-      console.log(`🌐 URL: https://lucky-draw-hjrp.onrender.com`);
     });
   })
   .catch(err => {
     console.error('🔴 Impossible de lancer le serveur:', err);
     process.exit(1);
   });
-
