@@ -138,7 +138,7 @@ const initGoogleSheet = async () => {
     console.log(`🟢 Feuille chargée : ${doc.title}`);
     sheetTickets = doc.sheetsByTitle['Tickets'];
     sheetResults = doc.sheetsByTitle['Résultats'];
-
+    
     if (!sheetTickets) console.error('🔴 Feuille "Tickets" non trouvée');
     if (!sheetResults) console.error('🔴 Feuille "Résultats" non trouvée');
   } catch (err) {
@@ -182,23 +182,35 @@ app.post('/api/reset-draw', async (req, res) => {
     }
     console.log('✅ Mot de passe valide');
 
-    // Supprimer les anciens résultats
-    const oldRows = await sheetResults.getRows();
-    console.log(`🗑️ Suppression de ${oldRows.length} anciennes lignes`);
-    for (const row of oldRows) await row.delete();
-    console.log('✅ Anciens résultats supprimés');
+    // 1. Vider la feuille Résultats
+    console.log('🧨 Vidage complet de la feuille Résultats...');
+    await sheetResults.clear();
+    console.log('✅ Feuille Résultats vidée');
 
-    // Récupérer les tickets
+    // 2. Réécriture de l'en-tête
+    await sheetResults.setHeaderRow([
+      'Numéro du ticket',
+      'Numéro du lot',
+      'Sponsor',
+      'Description',
+      'Image'
+    ]);
+    console.log('✅ En-tête réécrit');
+
+    // 3. Récupérer tous les tickets
     const ticketRows = await sheetTickets.getRows();
     const tickets = ticketRows.map(row => row['Numéro du ticket']).filter(Boolean);
-    if (tickets.length === 0) return res.status(400).json({ error: 'Aucun ticket trouvé' });
+    if (tickets.length === 0) {
+      console.log('❌ Aucun ticket trouvé');
+      return res.status(400).json({ error: 'Aucun ticket trouvé dans la feuille' });
+    }
 
-    // Mélanger les tickets et lots
+    // 4. Mélanger
     const shuffledTickets = [...tickets].sort(() => Math.random() - 0.5);
     const shuffledLots = [...lots].sort(() => Math.random() - 0.5);
     const count = Math.min(shuffledTickets.length, shuffledLots.length);
 
-    // Préparer les attributions
+    // 5. Attribuer les lots
     const assignments = [];
     for (let i = 0; i < count; i++) {
       assignments.push({
@@ -210,12 +222,12 @@ app.post('/api/reset-draw', async (req, res) => {
       });
     }
 
-    // Insertion en batch dans la feuille Résultats
+    // 6. Écriture batch
     console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
     await sheetResults.addRows(assignments);
     console.log('✅ Tirage réinitialisé avec succès');
 
-    res.json({
+    res.json({ 
       message: 'Tirage réinitialisé avec succès',
       assignedCount: assignments.length,
       totalTickets: tickets.length
@@ -228,8 +240,8 @@ app.post('/api/reset-draw', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
+  res.json({ 
+    status: 'OK', 
     timestamp: new Date().toISOString(),
     sheets: {
       tickets: !!sheetTickets,
@@ -242,6 +254,7 @@ initGoogleSheet()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`✅ Serveur lancé sur le port ${PORT}`);
+      console.log(`🌐 Application prête sur le port ${PORT}`);
     });
   })
   .catch(err => {
