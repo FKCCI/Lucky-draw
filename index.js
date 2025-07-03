@@ -1,6 +1,3 @@
-console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
-await sheetResults.addRows(assignments);
-console.log('✅ Insertion batch terminée');
 const express = require('express');
 const cors = require('cors');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
@@ -16,7 +13,7 @@ const doc = new GoogleSpreadsheet(process.env.SPREADSHEET_ID);
 let sheetTickets;
 let sheetResults;
 
-// DÉFINITION UNIQUE DES LOTS
+// DÉFINITION DES LOTS
 const lots = [
   { lotNumber: 9, sponsor: "VINESSEN", description: "Vouchers for wine bottles – Redeemable at Vinessen store" },
   { lotNumber: 10, sponsor: "GRAND HYATT", description: "One night stay at Grand Suite for 2 guest with club benefit" },
@@ -141,7 +138,7 @@ const initGoogleSheet = async () => {
     console.log(`🟢 Feuille chargée : ${doc.title}`);
     sheetTickets = doc.sheetsByTitle['Tickets'];
     sheetResults = doc.sheetsByTitle['Résultats'];
-    
+
     if (!sheetTickets) console.error('🔴 Feuille "Tickets" non trouvée');
     if (!sheetResults) console.error('🔴 Feuille "Résultats" non trouvée');
   } catch (err) {
@@ -185,23 +182,23 @@ app.post('/api/reset-draw', async (req, res) => {
     }
     console.log('✅ Mot de passe valide');
 
-    // 1. Supprimer les anciennes lignes
+    // Supprimer les anciens résultats
     const oldRows = await sheetResults.getRows();
     console.log(`🗑️ Suppression de ${oldRows.length} anciennes lignes`);
     for (const row of oldRows) await row.delete();
     console.log('✅ Anciens résultats supprimés');
 
-    // 2. Récupérer les tickets
+    // Récupérer les tickets
     const ticketRows = await sheetTickets.getRows();
     const tickets = ticketRows.map(row => row['Numéro du ticket']).filter(Boolean);
     if (tickets.length === 0) return res.status(400).json({ error: 'Aucun ticket trouvé' });
 
-    // 3. Mélange
+    // Mélanger les tickets et lots
     const shuffledTickets = [...tickets].sort(() => Math.random() - 0.5);
     const shuffledLots = [...lots].sort(() => Math.random() - 0.5);
     const count = Math.min(shuffledTickets.length, shuffledLots.length);
 
-    // 4. Créer les assignations
+    // Préparer les attributions
     const assignments = [];
     for (let i = 0; i < count; i++) {
       assignments.push({
@@ -213,12 +210,12 @@ app.post('/api/reset-draw', async (req, res) => {
       });
     }
 
-    // 5. Écriture en batch
+    // Insertion en batch dans la feuille Résultats
     console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
     await sheetResults.addRows(assignments);
     console.log('✅ Tirage réinitialisé avec succès');
 
-    res.json({ 
+    res.json({
       message: 'Tirage réinitialisé avec succès',
       assignedCount: assignments.length,
       totalTickets: tickets.length
@@ -231,8 +228,8 @@ app.post('/api/reset-draw', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     sheets: {
       tickets: !!sheetTickets,
