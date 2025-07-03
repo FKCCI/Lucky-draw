@@ -1,3 +1,6 @@
+console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
+await sheetResults.addRows(assignments);
+console.log('✅ Insertion batch terminée');
 const express = require('express');
 const cors = require('cors');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
@@ -236,10 +239,10 @@ app.post('/api/reset-draw', async (req, res) => {
 
     // 5. Écrire dans Google Sheet Résultats
     console.log('💾 Écriture des résultats...');
-    for (let i = 0; i < assignments.length; i++) {
-      const entry = assignments[i];
-      console.log(`📝 Ajout: Ticket ${entry['Numéro du ticket']} -> Lot ${entry['Numéro du lot']}`);
-      await sheetResults.addRow(entry);
+    console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
+await sheetResults.addRows(assignments);
+console.log('✅ Insertion batch terminée');
+
     }
 
     console.log('🎉 Tirage réinitialisé avec succès!');
