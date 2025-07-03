@@ -221,7 +221,10 @@ app.post('/api/reset-draw', async (req, res) => {
         'Image': shuffledLots[i].imageUrl || ''
       });
     }
-
+assignments.sort((a, b) => {
+  const numA = parseInt(a['Numéro du ticket']);
+  const numB = parseInt(b['Numéro du ticket']);
+  return numA - numB;
     // 6. Écriture batch
     console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
     await sheetResults.addRows(assignments);
