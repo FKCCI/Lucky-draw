@@ -221,14 +221,18 @@ app.post('/api/reset-draw', async (req, res) => {
         'Image': shuffledLots[i].imageUrl || ''
       });
     }
+
+    // 6. Trier par numéro de ticket
 assignments.sort((a, b) => {
   const numA = parseInt(a['Numéro du ticket']);
   const numB = parseInt(b['Numéro du ticket']);
   return numA - numB;
-    // 6. Écriture batch
-    console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
-    await sheetResults.addRows(assignments);
-    console.log('✅ Tirage réinitialisé avec succès');
+});
+
+// 7. Écriture batch
+console.log(`💾 Insertion en batch de ${assignments.length} lignes...`);
+await sheetResults.addRows(assignments);
+console.log('✅ Tirage réinitialisé avec succès');
 
     res.json({ 
       message: 'Tirage réinitialisé avec succès',
