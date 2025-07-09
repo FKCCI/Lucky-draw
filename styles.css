@@ -9,7 +9,7 @@ body {
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    background-image: url('https://github.com/FKCCI/Lucky-draw/blob/d4638ecffdb4e1bf25dfe4d880973db9b6a251ff/Background%20bastille%20day%202025.jpg?raw=true');
+    background-image: url('    background-image: url('./images/background-bastille.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
