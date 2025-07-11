@@ -124,7 +124,8 @@ const lots = [
 { lotNumber: 115, sponsor: “BOKSOONDOGA”, description: “Boksoondoga Facial Treatment Mask” },
 { lotNumber: 116, sponsor: “BOKSOONDOGA”, description: “Boksoondoga Facial Treatment Mask” },
 { lotNumber: 117, sponsor: “BOKSOONDOGA”, description: “Boksoondoga Facial Treatment Mask” },
-{ lotNumber: 118, sponsor: “BOKSOONDOGA”, description: “Boksoondoga Facial Treatment Mask” }
+{ lotNumber: 118, sponsor: “BOKSOONDOGA”, description: “Boksoondoga Facial Treatment Mask” },
+];
 
 const initGoogleSheet = async () => {
   try {
