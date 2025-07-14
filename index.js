@@ -15,7 +15,6 @@ let sheetResults;
 
 // DÉFINITION DES LOTS
 const lots = [
-const lots = [
 { lotNumber: 9, sponsor: "VINESSEN", description: "Vouchers for wine bottles – Redeemable at Vinessen store", imageUrl: "https://github.com/FKCCI/Lucky-draw/blob/main/image%20site/9.%20VINESSEN_Vouchers%20for%20wine%20bottles%20%E2%80%93%20Redeemable%20at%20Vinessen%20store.JPG?raw=true" },
 { lotNumber: 10, sponsor: "GRAND HYATT", description: "One night stay at Grand Suite for 2 guest with club benefit", imageUrl: "https://github.com/FKCCI/Lucky-draw/blob/main/image%20site/10.%20GRAND%20HYATT_One%20night%20stay%20at%20Grand%20Suite%20for%202%20guest%20with%20club%20benefit.png?raw=true" },
 { lotNumber: 11, sponsor: "PERNOD RICARD", description: "Martell Chanteloup XXO", imageUrl: "https://github.com/FKCCI/Lucky-draw/blob/main/image%20site/11.%20PERNOD%20RICARD_Martell%20Chanteloup%20XXO.png?raw=true" },
